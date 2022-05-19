@@ -1,7 +1,12 @@
 <template>
   <div class="container">
     <!--<div v-if="allSheep.length !== 1" class="container">-->
-    <Sheep :sheep="sheep" :key="sheep.id" v-for="sheep in allSheep" />
+    <Sheep
+      :sheep="sheep"
+      :key="sheep.id"
+      v-for="sheep in sheeps"
+      @deleteSheep="deleteSheep"
+    />
   </div>
   <!-- <div class="not_found" v-else>Sorry, no sheep found!</div>-->
 </template>
@@ -13,7 +18,14 @@ export default {
     Sheep,
   },
   props: {
-    allSheep: Array,
+    sheeps: Array,
+  },
+
+  methods: {
+    deleteSheep(id) {
+      console.log("in list");
+      this.$emit("deleteSheep", id);
+    },
   },
 };
 </script>

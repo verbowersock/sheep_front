@@ -29,8 +29,9 @@ export const apolloClient = new ApolloClient({
   link: createLink(),
   defaultOptions: {
     watchQuery: {
-      fetchPolicy: "cache-and-network",
+      fetchPolicy: "no-cache",
     },
+    nextFetchPolicy: "use-cache",
   },
 });
 

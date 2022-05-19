@@ -4,7 +4,25 @@
     :class="`card_background_${color}`"
     :bordered="false"
   >
-    <va-card-title class="card_title">{{ sheep.name }}</va-card-title>
+    <div class="button-group">
+      <q-btn
+        flat
+        round
+        color="secondary"
+        icon="edit"
+        size="lg"
+        @click="handleEdit"
+      />
+      <q-btn
+        flat
+        round
+        color="accent"
+        icon="delete"
+        size="lg"
+        @click="handleDelete"
+      />
+    </div>
+    <va-card-title class="card_title">{{ sheep.name }} </va-card-title>
     <va-card-content>
       <div class="card_content_wrapper">
         <div class="card_content_image">
@@ -20,7 +38,8 @@
           </p>
           <p>
             <span class="card_content_subtitle">Scrapie Tag ID:</span>
-            {{ sheep.scrapie_id }}
+            <span v-if="sheep.scrapie_id">{{ sheep.scrapie_id }}</span>
+            <span v-else> N/A</span>
           </p>
           <p>
             <span class="card_content_subtitle">Date Of Birth:</span>
@@ -44,13 +63,25 @@
             <span class="card_content_subtitle">Breed:</span>
             {{ sheep.breed.breed_name }}
           </p>
-          <p v-if="sheep.father">
+          <p>
             <span class="card_content_subtitle">Father:</span>
-            {{ sheep.father?.name }}
+            <span v-if="sheep.father">{{ sheep.father?.name }}</span>
+            <span v-else> N/A</span>
           </p>
-          <p v-if="sheep.mother">
+          <p>
             <span class="card_content_subtitle">Mother:</span>
-            {{ sheep.mother?.name }}
+            <span v-if="sheep.mother">{{ sheep.mother?.name }}</span>
+            <span v-else> N/A</span>
+          </p>
+          <p>
+            <span class="card_content_subtitle">Color:</span>
+            <span v-if="sheep.color">{{ sheep.color?.color_name }}</span>
+            <span v-else> N/A</span>
+          </p>
+          <p>
+            <span class="card_content_subtitle">Marking:</span>
+            <span v-if="sheep.marking">{{ sheep.marking?.marking_name }}</span>
+            <span v-else> N/A</span>
           </p>
         </div>
       </div>
@@ -60,11 +91,15 @@
 
 <script>
 import { intervalToDuration, formatDuration } from "date-fns";
+import { DELETE_SHEEP } from "../graphql/Queries";
+import { GRAPHQL_API_URL } from "../config";
+import { print } from "graphql";
 
 export default {
   name: "Sheep",
   props: {
     sheep: Object,
+    deleteSheep: Function,
   },
   computed: {
     color() {
@@ -82,7 +117,41 @@ export default {
       const today = new Date();
       const dob = Date.parse(this.sheep.dob);
       let duration = intervalToDuration({ start: dob, end: today });
-      return formatDuration(duration, { format: ["years", "months"] });
+      return formatDuration(duration, {
+        format: ["years", "months", "weeks"],
+      });
+    },
+  },
+  methods: {
+    handleDelete() {
+      this.$q
+        .dialog({
+          title: "Please Confirm",
+          message: `Are you sure you want to delete this sheep?`,
+          cancel: true,
+          persistent: true,
+        })
+        .onOk(() => {
+          this.axios
+            .post(GRAPHQL_API_URL, {
+              query: print(DELETE_SHEEP),
+              variables: { sheepId: this.sheep.sheep_id },
+            })
+            .then((res) => {
+              if (res.data.data.deleteSheep === "true") {
+                this.$emit("deleteSheep", this.sheep.sheep_id);
+              } else {
+                this.$q.dialog({
+                  title: "Can't delete",
+                  message: `Something went wrong!`,
+                  persistent: true,
+                });
+              }
+            });
+        });
+    },
+    handleEdit() {
+      console.log("edit");
     },
   },
   //data() {
@@ -103,7 +172,12 @@ export default {
   flex-direction: row;
   min-height: 300px;
 }
-
+.button-group {
+  width: 150px;
+  position: absolute;
+  right: 0;
+  top: 10px;
+}
 .card_background_female {
   background: linear-gradient(
       to top left,
