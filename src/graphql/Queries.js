@@ -13,20 +13,27 @@ export const ALL_SHEEP = gql`
       sex
       purchase_date
       father {
+        sheep_id
+        tag_id
         name
       }
       mother {
+        sheep_id
+        tag_id
         name
       }
       breed {
+        id
         breed_name
       }
       date_last_bred
       date_deceased
       color {
+        id
         color_name
       }
       marking {
+        id
         marking_name
       }
     }
@@ -132,11 +139,12 @@ export const DELETE_SHEEP = gql`
 
 export const CREATE_SHEEP = gql`
   mutation CreateSheep(
+    $picture: String
     $tagId: String!
-    $dob: String!
+    $dob: String
     $sex: String!
     $breedId: Int!
-    $name: String!
+    $name: String
     $purchaseDate: String
     $dam: Int
     $sire: Int
@@ -145,6 +153,7 @@ export const CREATE_SHEEP = gql`
     $scrapieId: String
   ) {
     createSheep(
+      picture: $picture
       tag_id: $tagId
       dob: $dob
       sex: $sex
@@ -157,6 +166,7 @@ export const CREATE_SHEEP = gql`
       marking_id: $markingId
       scrapie_id: $scrapieId
     ) {
+      picture
       sheep_id
       tag_id
       scrapie_id
@@ -166,20 +176,101 @@ export const CREATE_SHEEP = gql`
       dob
       purchase_date
       father {
+        sheep_id
+        tag_id
         name
       }
       mother {
+        sheep_id
+        tag_id
         name
       }
       breed {
+        id
         breed_name
       }
       color {
+        id
         color_name
       }
       marking {
+        id
         marking_name
       }
+    }
+  }
+`;
+
+export const UPDATE_SHEEP = gql`
+  mutation updateSheep(
+    $sheepId: Int!
+    $tagId: String
+    $dob: String
+    $sex: String
+    $purchaseDate: String
+    $breedId: Int
+    $dam: Int
+    $sire: Int
+    $colorId: Int
+    $markingId: Int
+    $scrapieId: String
+    $name: String
+    $weightAtBirth: Int
+    $dateDeceased: String
+    $dateLastBred: String
+    $picture: String
+  ) {
+    updateSheep(
+      sheep_id: $sheepId
+      tag_id: $tagId
+      dob: $dob
+      sex: $sex
+      purchase_date: $purchaseDate
+      breed_id: $breedId
+      dam: $dam
+      sire: $sire
+      color_id: $colorId
+      marking_id: $markingId
+      scrapie_id: $scrapieId
+      name: $name
+      weight_at_birth: $weightAtBirth
+      date_deceased: $dateDeceased
+      picture: $picture
+      date_last_bred: $dateLastBred
+    ) {
+      sheep_id
+      picture
+      tag_id
+      scrapie_id
+      name
+      weight_at_birth
+      date_deceased
+      dob
+      sex
+      purchase_date
+      father {
+        sheep_id
+        tag_id
+        name
+      }
+      mother {
+        sheep_id
+        tag_id
+        name
+      }
+      breed {
+        id
+        breed_name
+      }
+      color {
+        id
+        color_name
+      }
+      marking {
+        id
+        marking_name
+      }
+      date_last_bred
     }
   }
 `;

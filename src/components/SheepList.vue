@@ -4,6 +4,7 @@
     <Sheep
       :sheep="sheep"
       :key="sheep.id"
+      @editForm="editForm(sheep)"
       v-for="sheep in sheeps"
       @deleteSheep="deleteSheep"
     />
@@ -23,8 +24,11 @@ export default {
 
   methods: {
     deleteSheep(id) {
-      console.log("in list");
       this.$emit("deleteSheep", id);
+    },
+    editForm(sheep) {
+      console.log(sheep);
+      this.$emit("editForm", sheep);
     },
   },
 };

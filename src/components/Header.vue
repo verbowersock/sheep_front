@@ -60,6 +60,7 @@ export default {
       query: "",
     };
   },
+
   methods: {
     sendSearchQuery(val) {
       this.query = val;

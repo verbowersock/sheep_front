@@ -3,7 +3,7 @@ import App from "./App.vue";
 import router from "./router";
 
 import { VuesticPlugin } from "vuestic-ui";
-import "vuestic-ui/dist/vuestic-ui.css";
+
 import { Quasar, Dialog, Notify } from "quasar";
 
 import "@quasar/extras/roboto-font/roboto-font.css";

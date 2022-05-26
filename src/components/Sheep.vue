@@ -11,7 +11,7 @@
         color="secondary"
         icon="edit"
         size="lg"
-        @click="handleEdit"
+        @click="handleEdit()"
       />
       <q-btn
         flat
@@ -22,12 +22,14 @@
         @click="handleDelete"
       />
     </div>
-    <va-card-title class="card_title">{{ sheep.name }} </va-card-title>
+    <va-card-title class="card_title"
+      >{{ sheep.name ? sheep.name : sheep.tag_id }}
+    </va-card-title>
     <va-card-content>
       <div class="card_content_wrapper">
         <div class="card_content_image">
           <img
-            src="https://cdn.pixabay.com/photo/2020/01/27/17/59/sheep-4797921_960_720.jpg"
+            v-bind:src="sheep.picture ? sheep.picture : placeholder"
             alt="sheep"
           />
         </div>
@@ -94,12 +96,18 @@ import { intervalToDuration, formatDuration } from "date-fns";
 import { DELETE_SHEEP } from "../graphql/Queries";
 import { GRAPHQL_API_URL } from "../config";
 import { print } from "graphql";
+import placeholder from "../assets/placeholder.jpg";
 
 export default {
   name: "Sheep",
   props: {
     sheep: Object,
     deleteSheep: Function,
+  },
+  data: function () {
+    return {
+      placeholder,
+    };
   },
   computed: {
     color() {
@@ -115,14 +123,35 @@ export default {
     },
     age() {
       const today = new Date();
-      const dob = Date.parse(this.sheep.dob);
-      let duration = intervalToDuration({ start: dob, end: today });
-      return formatDuration(duration, {
-        format: ["years", "months", "weeks"],
-      });
+      if (this.sheep.dob) {
+        const dob = Date.parse(this.sheep.dob);
+        let units = ["years", "months"];
+        let duration = intervalToDuration({ start: dob, end: today });
+        console.log(duration);
+        if (duration.months === 0) {
+          units.push("weeks");
+          this.addWeeks(duration);
+          if (duration.weeks === 0) {
+            units.push("days");
+          }
+        }
+
+        return formatDuration(duration, {
+          format: units,
+          delimiter: ", ",
+        });
+      } else {
+        return "N/A";
+      }
     },
   },
   methods: {
+    addWeeks(duration) {
+      if (!duration.weeks) {
+        duration.weeks = (duration.days / 7) | 0;
+        duration.days = duration.days - duration.weeks * 7;
+      }
+    },
     handleDelete() {
       this.$q
         .dialog({
@@ -151,7 +180,9 @@ export default {
         });
     },
     handleEdit() {
-      console.log("edit");
+      let sheep = Object.fromEntries(Object.entries(this.sheep));
+
+      this.$emit("editForm", sheep);
     },
   },
   //data() {
@@ -226,6 +257,7 @@ export default {
 .card_content_subtitle {
   font-weight: bold;
   font-size: 1.4rem;
+  margin-right: 10px;
 }
 
 img {
@@ -242,6 +274,9 @@ h1 {
   font-weight: 500;
   font-size: 2.6rem;
   color: white;
+}
+p {
+  margin: 0 0 3px;
 }
 
 .card_title {

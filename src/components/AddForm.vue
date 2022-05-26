@@ -1,26 +1,58 @@
 <template>
   <q-card>
     <q-card-section>
-      <div class="text-h6">Add a New Sheep</div>
+      <div class="text-h6">{{ formTitle }} a Sheep</div>
     </q-card-section>
     <q-separator />
 
     <q-card-section style="max-height: 50vh" class="scroll">
       <q-form
-        @submit="onSubmit"
         ref="form"
+        @submit="onSubmit"
         @cancel="onCancel"
         class="q-gutter-md"
-        greedy
       >
+        <div v-if="picture_exists" class="pic-preview_container">
+          <div class="icon_container">
+            <q-icon
+              name="cancel"
+              color="grey"
+              size="22px"
+              @click.stop.prevent="picture_exists = false"
+              class="cursor-pointer"
+            />
+          </div>
+          <div class="pic-preview">
+            <img v-bind:src="sheep.picture" />
+          </div>
+        </div>
+        <q-file
+          bottom-slots
+          name=""
+          label="Sheep photo"
+          v-model="input.picture"
+          counter
+          stack-label
+          accept=".jpg, image/*"
+          @rejected="onRejected"
+        >
+          <template v-slot:prepend>
+            <q-icon name="cloud_upload" @click.stop />
+          </template>
+          <template v-if="input.picture" v-slot:append>
+            <q-icon
+              name="cancel"
+              @click.stop.prevent="input.picture = null"
+              class="cursor-pointer"
+            />
+          </template>
+        </q-file>
         <q-input
           stack-label
           class="input"
           name="name"
           v-model="input.name"
-          label="Name *"
-          lazy-rules
-          :rules="[(val) => (val && val.length > 0) || 'Please enter name']"
+          label="Name"
         />
 
         <q-input
@@ -46,10 +78,10 @@
           clearable
           v-model="input.sex"
           :options="sexOptions"
-          option-value="id"
+          option-value="name"
           option-label="name"
-          label="Sheep sex"
-          :rules="[(val) => val || 'Please enter sheep Sex']"
+          label="Sheep sex *"
+          :rules="[(val) => val || 'Please select Sex']"
         />
 
         <q-input
@@ -80,8 +112,6 @@
           input-debounce="0"
           clearable
           new-value-mode="add-unique"
-          lazy-rules
-          :rules="[(val) => val || 'Please select breed']"
           @filter="filterFn"
           @new-value="createBreed"
           option-value="id"
@@ -89,6 +119,8 @@
           label="Breed *"
           transition-show="scale"
           transition-hide="scale"
+          lazy-rules
+          :rules="[(val) => val || 'Please select Breed']"
         >
           <template v-slot:option="{ itemProps, opt }">
             <q-item v-bind="itemProps">
@@ -198,18 +230,27 @@
             </q-item>
           </template>
         </q-select>
-
+        <q-checkbox
+          left-label
+          v-model="markDeceased"
+          label="Mark as deceased"
+        />
+        <q-input
+          v-if="markDeceased"
+          class="input"
+          name="date_deceased"
+          v-model="input.date_deceased"
+          type="date"
+          label="Date deceased"
+          stack-label
+          @change="onDeadChange($event)"
+        >
+        </q-input>
         <q-separator />
 
         <div>
           <q-btn flat label="Cancel" color="secondary" v-close-popup />
-          <q-btn
-            type="submit"
-            @click="onSubmit"
-            flat
-            label="Add"
-            color="primary"
-          />
+          <q-btn @click="onSubmit" flat label="Submit" color="primary" />
         </div>
       </q-form>
     </q-card-section>
@@ -230,11 +271,25 @@ import { ALL_MALES } from "../graphql/Queries";
 import { ALL_COLORS } from "../graphql/Queries";
 import { ALL_MARKINGS } from "../graphql/Queries";
 import { CREATE_SHEEP } from "../graphql/Queries";
+import { UPDATE_SHEEP } from "../graphql/Queries";
 import { GRAPHQL_API_URL } from "../config";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { FirebaseStorage } from "../services/firebase";
+//import { getStorage, ref, getDownloadURL } from "firebase/storage";
+
+//import { singleUpload, deleteObjectByKey } from "../../aws.js";
 
 //import { ValidationProvider, ValidationObserver } from "vee-validate";
 export default {
+  name: "AddForm",
+  props: {
+    formTitle: String,
+    sheep: Object,
+  },
+
   beforeCreate() {
+    // console.log(this.sheep.marking);
+    console.log(this.sheep);
     this.axios
       .post(GRAPHQL_API_URL, {
         query: print(ALL_BREEDS),
@@ -279,6 +334,13 @@ export default {
       })
       .catch((err) => console.log(err));
   },
+
+  created() {
+    if (this.input.sex) {
+      const x = this.sexOptions.find((o) => o.id === this.input.sex);
+      this.input.sex = { id: x.id, name: x.name };
+    }
+  },
   unmounted() {
     this.breedOptions = [];
   },
@@ -286,18 +348,23 @@ export default {
   data() {
     return {
       input: {
-        name: null,
-        tag_id: null,
-        scrapie_id: null,
-        sex: null,
-        dob: null,
-        dop: null,
-        breed: null,
-        mother: null,
-        father: null,
-        color: null,
-        marking: null,
+        name: this.sheep.name,
+        tag_id: this.sheep.tag_id,
+        scrapie_id: this.sheep.scrapie_id,
+        sex: this.sheep.sex,
+        dob: this.sheep.dob,
+        dop: this.sheep.dop,
+        breed: this.sheep.breed,
+        mother: this.sheep.mother,
+        father: this.sheep.father,
+        color: this.sheep.color,
+        marking: this.sheep.marking,
+        picture: null,
+        sheep_id: this.sheep.sheep_id,
+        date_deceased: this.sheep.date_deceased,
       },
+      picture_exists: this.sheep.picture !== null,
+      markDeceased: false,
       nameref: null,
       breedOptions: [],
       damOptions: [],
@@ -335,8 +402,8 @@ export default {
     },
   },
   methods: {
-    nameRules() {
-      (val) => (val && val.length > 0) || "Please type something";
+    onDeadChange(e) {
+      console.log(e);
     },
     createBreed(val, done) {
       if (val.length > 0) {
@@ -527,26 +594,152 @@ export default {
             });
         });
     },
+    async fileInput(file) {
+      if (this.picture_exists) {
+        return this.sheep.picture;
+      } else if (!file) {
+        return null;
+      } else {
+        let filename = file.name;
+        try {
+          const storage = FirebaseStorage;
+          const storageRef = ref(
+            storage,
+            `uploads/images/${Date.now()}-${filename}`
+          );
+
+          return uploadBytes(storageRef, file).then(() => {
+            console.log(getDownloadURL(storageRef));
+            return getDownloadURL(storageRef);
+          });
+        } catch (error) {
+          console.log(error);
+          this.$q.notify({
+            type: "negative",
+            message: `File upload failed`,
+          });
+        }
+      }
+
+      //  .catch((e) => {
+      //    console.error(e);
+      //   });
+      // return result;
+    },
+
+    async addSheep(input, path) {
+      const {
+        tag_id,
+        dob,
+        sex,
+        name,
+        dop,
+        breed,
+        mother,
+        father,
+        color,
+        marking,
+        scrapie_id,
+        date_deceased,
+      } = input;
+      return await this.axios.post(GRAPHQL_API_URL, {
+        query: print(CREATE_SHEEP),
+        variables: {
+          picture: path,
+          tagId: tag_id,
+          dob: dob,
+          sex: sex.id,
+          name: name ? name : tag_id,
+          purchaseDate: dop,
+          breedId: breed.id,
+          dam: mother?.sheep_id,
+          sire: father?.sheep_id,
+          colorId: color?.id,
+          markingId: marking?.id,
+          scrapieId: scrapie_id,
+          dateDeceased: date_deceased,
+        },
+      });
+    },
+
+    async editSheep(input, path) {
+      const {
+        sheep_id,
+        tag_id,
+        dob,
+        sex,
+        name,
+        dop,
+        breed,
+        mother,
+        father,
+        color,
+        marking,
+        scrapie_id,
+        date_deceased,
+      } = input;
+      console.log(input);
+      return await this.axios.post(GRAPHQL_API_URL, {
+        query: print(UPDATE_SHEEP),
+        variables: {
+          sheepId: sheep_id,
+          picture: path,
+          tagId: tag_id,
+          dob: dob,
+          sex: sex.id,
+          name: name,
+          purchaseDate: dop,
+          breedId: breed.id,
+          dam: mother?.sheep_id,
+          sire: father?.sheep_id,
+          colorId: color?.id,
+          markingId: marking?.id,
+          scrapieId: scrapie_id,
+          dateDeceased: date_deceased,
+        },
+      });
+    },
+
+    validateAndClose() {
+      this.$q.notify({
+        color: "green-4",
+        textColor: "white",
+        icon: "cloud_done",
+        message: "Submitted",
+      });
+      this.$emit("onClose", false);
+    },
 
     async onSubmit() {
       const success = await this.$refs.form.validate();
-      if (!success) {
-        console.log(this.input.sex);
-        this.$q.notify({
-          color: "red",
-          textColor: "white",
-          icon: "cloud_done",
-          message: "Please input missing fields",
+      if (success) {
+        await this.fileInput(this.input.picture).then((path) => {
+          console.log(path);
+          this.formTitle === "Add"
+            ? this.addSheep(this.input, path).then((res) => {
+                //console.log(res);
+                this.$emit("update_data", res.data.data.createSheep);
+                this.validateAndClose();
+              })
+            : this.editSheep(this.input, path).then((res) => {
+                this.$emit("edit_data", res.data.data.updateSheep);
+                this.validateAndClose();
+              });
         });
       } else {
+        console.log("validation failed");
         this.$q.notify({
-          color: "green-4",
-          textColor: "white",
-          icon: "cloud_done",
-          message: "Submitted",
+          type: "negative",
+          message: `Please fill out required fields`,
         });
-        this.$emit("onClose", false);
       }
+    },
+    onRejected() {
+      console.log("rejected");
+      this.$q.notify({
+        type: "negative",
+        message: `File must be an image`,
+      });
     },
 
     /*onSubmit() {
@@ -593,8 +786,14 @@ export default {
         textColor: "white",
         icon: "cloud_done",
         message: "Submitted",
-      });*/
-    //  },
+      });
+        }
+      }
+    },
+  },
+
+  //  },
+  //  },*/
   },
 };
 </script>
@@ -606,5 +805,27 @@ export default {
 .q-field__label {
   font-size: 18px !important;
   color: black !important;
+}
+
+.pic-preview {
+  width: 200px;
+  height: 200px;
+  display: block;
+  overflow: hidden;
+  object-fit: cover;
+}
+img {
+  height: 100%;
+}
+.icon_container {
+  width: 35px;
+  margin-left: 200px;
+}
+
+.pic-preview_container {
+  height: 230px;
+  width: 230px;
+  display: flex;
+  flex-direction: column;
 }
 </style>
