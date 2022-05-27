@@ -793,7 +793,7 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 .input {
   padding-bottom: 20px;
 }
