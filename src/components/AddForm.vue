@@ -793,7 +793,7 @@ export default {
 };
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
 .input {
   padding-bottom: 20px;
 }
@@ -816,7 +816,9 @@ img {
   width: 35px;
   margin-left: 200px;
 }
-
+.col {
+  flex: 1000 1 0% !important;
+}
 .pic-preview_container {
   height: 230px;
   width: 230px;
