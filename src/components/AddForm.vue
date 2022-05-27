@@ -794,8 +794,8 @@ export default {
 </script>
 
 <style lang="scss">
-.div {
-  display: flex !important;
+.row {
+  flex-grow: 1000 !important;
 }
 .input {
   padding-bottom: 20px;
