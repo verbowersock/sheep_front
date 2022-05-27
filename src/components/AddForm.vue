@@ -6,12 +6,7 @@
     <q-separator />
 
     <q-card-section style="max-height: 50vh" class="scroll">
-      <q-form
-        ref="form"
-        @submit="onSubmit"
-        @cancel="onCancel"
-        class="q-gutter-md"
-      >
+      <q-form ref="form" @submit="onSubmit" @cancel="onCancel">
         <div v-if="picture_exists" class="pic-preview_container">
           <div class="icon_container">
             <q-icon
@@ -799,6 +794,9 @@ export default {
 </script>
 
 <style lang="scss">
+.div {
+  display: flex !important;
+}
 .input {
   padding-bottom: 20px;
 }

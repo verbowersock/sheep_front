@@ -27,12 +27,8 @@
     </va-card-title>
     <va-card-content>
       <div class="card_content_wrapper">
-        <div class="card_content_image">
-          <img
-            v-bind:src="sheep.picture ? sheep.picture : placeholder"
-            alt="sheep"
-          />
-        </div>
+        <div class="card_content_image" v-bind:style="background" />
+
         <div class="card_content_text">
           <p>
             <span class="card_content_subtitle">Tag ID:</span>
@@ -96,7 +92,7 @@ import { intervalToDuration, formatDuration } from "date-fns";
 import { DELETE_SHEEP } from "../graphql/Queries";
 import { GRAPHQL_API_URL } from "../config";
 import { print } from "graphql";
-import placeholder from "../assets/placeholder.jpg";
+import placeholder from "@/assets/placeholder.jpg";
 
 export default {
   name: "Sheep",
@@ -104,11 +100,7 @@ export default {
     sheep: Object,
     deleteSheep: Function,
   },
-  data: function () {
-    return {
-      placeholder,
-    };
-  },
+
   computed: {
     color() {
       if (this.sheep.date_deceased) {
@@ -120,6 +112,11 @@ export default {
       } else {
         return "wether";
       }
+    },
+    background() {
+      return this.sheep.picture
+        ? { "background-image": `url(${this.sheep.picture})` }
+        : { "background-image": `url(${placeholder})` };
     },
     age() {
       const today = new Date();
@@ -260,14 +257,11 @@ export default {
   margin-right: 10px;
 }
 
-img {
-  height: 100%;
-}
 .card_content_image {
   width: 200px;
   height: 200px;
-  overflow: hidden;
-  object-fit: cover;
+  background-size: auto 200px;
+  background-position: center;
 }
 
 h1 {
