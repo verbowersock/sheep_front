@@ -1,1 +1,1 @@
-export const GRAPHQL_API_URL = import.meta.env.VITE_FIREBASE_API_KEY;
+export const GRAPHQL_API_URL = import.meta.env.VITE_GRAPHQL_API_URL;
