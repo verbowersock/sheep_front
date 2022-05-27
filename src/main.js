@@ -1,6 +1,5 @@
 import { createApp } from "vue";
 import App from "./App.vue";
-import router from "./router";
 
 import { VuesticPlugin } from "vuestic-ui";
 
@@ -17,7 +16,6 @@ import VueAxios from "vue-axios";
 
 const app = createApp(App);
 
-app.use(router);
 app.use(VuesticPlugin);
 app.use(Quasar, {
   plugins: { Dialog, Notify }, // import Quasar plugins and add here

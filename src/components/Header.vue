@@ -30,11 +30,6 @@
         </q-list>
       </q-btn-dropdown>
     </div>
-
-    <nav>
-      <RouterLink to="/">Home</RouterLink>
-      <RouterLink to="/about">About</RouterLink>
-    </nav>
   </div>
 </template>
 
