@@ -794,9 +794,6 @@ export default {
 </script>
 
 <style lang="scss">
-.row {
-  flex-grow: 1000 !important;
-}
 .input {
   padding-bottom: 20px;
 }

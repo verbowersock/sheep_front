@@ -20,4 +20,7 @@ export default defineConfig({
     },
     optimizeDeps: { include: ["firebase/app", "firebase/firestore"] },
   },
+  build: {
+    cssCodeSplit: true,
+  },
 });
