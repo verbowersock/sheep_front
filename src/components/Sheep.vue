@@ -241,7 +241,7 @@ export default {
     top left/40px 40px no-repeat !important;
 }
 .card_title {
-  font-size: 1.3rem;
+  font-size: 1.5rem !important;
   display: flex;
   justify-content: center;
 }

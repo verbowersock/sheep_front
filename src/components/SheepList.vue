@@ -41,7 +41,7 @@ export default {
   grid-template-rows: auto;
   width: 1400px;
   padding-top: 20px;
-  margin: 0 auto;
+  margin: 0 auto 50px;
 }
 
 h3 {
