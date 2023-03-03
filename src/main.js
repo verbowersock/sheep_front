@@ -16,7 +16,7 @@ import VueAxios from "vue-axios";
 
 const app = createApp(App);
 
-app.use(VuesticPlugin);
+//app.use(VuesticPlugin);
 app.use(Quasar, {
   plugins: { Dialog, Notify }, // import Quasar plugins and add here
 });
