@@ -27,9 +27,7 @@ coverage
 *.sln
 *.sw?
 .env
-.platforms
-.project
-.cordova
+
 android/*
 
 
